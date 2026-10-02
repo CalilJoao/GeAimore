@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reservar Item | G.E. Aimoré</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://npmcdn.com/flatpickr/dist/l10n/pt.js"></script>
+
+    <script>
+        if (localStorage.getItem('aimore-theme') === 'light') {
+            document.documentElement.classList.add('light-mode');
+        }
+    </script>
+
+    <style>
+        :root {
+            --bg-fundo: #050a1f; --bg-card: #0e1633; --bg-header: #0e1633; --bg-input: #1a244d;
+            --amarelo-corda: #ffde00; --texto-principal: #ffffff; --texto-apoio: #a0aec0;
+            --sucesso: #2ecc71; --erro: #ff4d4d; --aviso: #f39c12; --borda: rgba(255, 255, 255, 0.05);
+            --cal-bg: #0e1633; --cal-text: #ffffff; --cal-hover: #1a244d;
+        }
+        html.light-mode {
+            --bg-fundo: #f4f6f8; --bg-card: #ffffff; --bg-header: #ffffff; --bg-input: #f0f2f5;
+            --texto-principal: #1a2857; --texto-apoio: #4a5568; --borda: rgba(26, 40, 87, 0.1);
+            --cal-bg: #ffffff; --cal-text: #1a2857; --cal-hover: #f0f2f5;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; }
+        body { background-color: var(--bg-fundo); color: var(--texto-principal); height: 100vh; display: flex; flex-direction: column; transition: background-color 0.3s ease; }
+        header { background: var(--bg-header); padding: 15px 20px; display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid var(--amarelo-corda); }
+        .header-left { display: flex; align-items: center; gap: 15px; }
+        .btn-voltar { background: transparent; border: 1px solid var(--texto-apoio); color: var(--texto-apoio); width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; text-decoration: none; }
+        .header-title { font-size: 1.1rem; font-weight: 600; }
+        .btn-theme { background: transparent; border: 1px solid var(--texto-apoio); border-radius: 50%; width: 35px; height: 35px; cursor: pointer; }
+        .item-hero { text-align: center; padding: 30px 20px; }
+        .item-hero h2 { font-size: 1.6rem; margin-bottom: 5px; font-weight: 700; }
+        .item-hero p { color: var(--amarelo-corda); font-size: 0.9rem; font-weight: 600; text-transform: uppercase; }
+        .painel-reserva { background: var(--bg-card); flex-grow: 1; border-radius: 30px 30px 0 0; padding: 40px 30px; display: flex; flex-direction: column; }
+        .form-container { max-width: 500px; margin: 0 auto; width: 100%; display: flex; flex-direction: column; flex-grow: 1; }
+        .input-group { margin-bottom: 20px; }
+        .input-group label { display: block; font-size: 0.9rem; color: var(--texto-apoio); margin-bottom: 10px; font-weight: 600; }
+        .input-group input { width: 100%; padding: 16px; border-radius: 12px; border: 2px solid var(--borda); background: var(--bg-input); color: var(--texto-principal); outline: none; }
+        
+        .resumo-datas { background: rgba(255, 222, 0, 0.05); border: 1px dashed var(--amarelo-corda); border-radius: 12px; padding: 15px; margin-bottom: 25px; }
+        .resumo-datas p { font-size: 0.85rem; color: var(--texto-principal); margin-bottom: 5px; }
+        .resumo-datas strong { color: var(--amarelo-corda); }
+
+        .btn-confirmar { width: 100%; padding: 18px; border: none; border-radius: 12px; background: var(--amarelo-corda); color: #1a2857; font-weight: 700; font-size: 1.1rem; cursor: pointer; margin-top: auto; }
+        .btn-confirmar:disabled { background: var(--bg-input); color: var(--texto-apoio); }
+
+        /* --- ESTILIZAÇÃO DO CALENDÁRIO --- */
+        .flatpickr-calendar { background: var(--cal-bg) !important; color: var(--cal-text) !important; box-shadow: 0 10px 30px rgba(0,0,0,0.5) !important; }
+        .flatpickr-day { color: var(--cal-text) !important; border-radius: 8px !important; transition: 0.2s; }
+        
+        /* DIAS LIVRES (VERDES) */
+        .flatpickr-day:not(.flatpickr-disabled):not(.today):not(.selected) { 
+            background: rgba(46, 204, 113, 0.15) !important; 
+            color: var(--sucesso) !important; 
+            border: 1px solid rgba(46, 204, 113, 0.3) !important;
+        }
+
+        /* DIAS OCUPADOS/DESATIVADOS (VERMELHOS) */
+        .flatpickr-day.flatpickr-disabled, 
+        .flatpickr-day.flatpickr-disabled:hover { 
+            background: rgba(255, 77, 77, 0.15) !important; 
+            color: var(--erro) !important; 
+            cursor: not-allowed !important;
+            text-decoration: line-through;
+            border: 1px solid rgba(255, 77, 77, 0.3) !important;
+        }
+
+        /* DIA SELECIONADO */
+        .flatpickr-day.selected { background: var(--amarelo-corda) !important; border-color: var(--amarelo-corda) !important; color: #1a2857 !important; font-weight: bold; }
+        
+        #toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
+        .toast { padding: 15px 20px; border-radius: 10px; color: white; font-weight: 600; transform: translateX(120%); transition: 0.3s; display: flex; align-items: center; gap: 10px; }
+    </style>
+</head>
+<body>
+    <div id="toast-container"></div>
+    <header>
+        <div class="header-left">
+            <a href="inventario.html" class="btn-voltar">❮</a>
+            <span class="header-title">Nova Solicitação</span>
+        </div>
+        <button class="btn-theme" id="theme-btn" onclick="toggleTheme()">☀️</button>
+    </header>
+
+    <div class="item-hero">
+        <h2 id="nome-item">Carregando Material...</h2>
+        <p id="codigo-item">Verificando calendário...</p>
+    </div>
+
+    <div class="painel-reserva">
+        <form class="form-container" onsubmit="confirmarReserva(event)">
+            <div class="input-group">
+                <label>Data de Retirada</label>
+                <input type="text" id="data-retirada" placeholder="Selecione no calendário" required disabled>
+            </div>
+            <div class="input-group">
+                <label>Data de Devolução</label>
+                <input type="text" id="data-devolucao" placeholder="Selecione no calendário" required disabled>
+            </div>
+
+            <button type="submit" class="btn-confirmar" id="btn-submit" disabled>Aguarde...</button>
+        </form>
+    </div>
+
+    <script>
+        const scriptURL = 'https://script.google.com/macros/s/AKfycbx59Nv3FaWGg2aGIwOo7UH-ott9xwll6Enf-m_S3p4YIknuCxYK_KjA3J0zxcti5bw/exec';
+        const params = new URLSearchParams(window.location.search);
+        const nomeItemURL = params.get('item'); 
+        const codigoAtual = params.get('codigo'); 
+
+        function toggleTheme() {
+            const html = document.documentElement;
+            const btn = document.getElementById('theme-btn');
+            if (html.classList.contains('light-mode')) {
+                html.classList.remove('light-mode');
+                btn.innerText = '☀️';
+                localStorage.setItem('aimore-theme', 'dark');
+            } else {
+                html.classList.add('light-mode');
+                btn.innerText = '🌙';
+                localStorage.setItem('aimore-theme', 'light');
+            }
+        }
+
+        function formatarDataBR(dataISO) {
+            if (!dataISO) return "--/--/----";
+            const [ano, mes, dia] = dataISO.split("-");
+            return `${dia}/${mes}/${ano}`;
+        }
+
+        function showToast(msg, tipo = 'sucesso') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.style.background = tipo === 'sucesso' ? 'var(--sucesso)' : 'var(--erro)';
+            toast.innerHTML = msg;
+            container.appendChild(toast);
+            setTimeout(() => toast.style.transform = 'translateX(0)', 10);
+            setTimeout(() => { toast.style.transform = 'translateX(130%)'; toast.remove(); }, 3500);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!codigoAtual) { window.location.href = 'inventario.html'; return; }
+            document.getElementById('nome-item').innerText = nomeItemURL || "Material Selecionado";
+            document.getElementById('codigo-item').innerText = `Item Nº ${codigoAtual}`;
+            carregarReservasDoItem();
+        });
+
+        function carregarReservasDoItem() {
+            fetch(`${scriptURL}?action=get_reservas&codigo=${codigoAtual}`)
+                .then(res => res.json())
+                .then(data => {
+                    const datasBloqueadas = data.map(res => ({
+                        from: res.retirada.split('T')[0], to: res.devolucao.split('T')[0]
+                    }));
+                    iniciarCalendarios(datasBloqueadas);
+                    document.getElementById('data-retirada').disabled = false;
+                    document.getElementById('data-devolucao').disabled = false;
+                    document.getElementById('btn-submit').innerText = "Confirmar Solicitação";
+                    document.getElementById('btn-submit').disabled = false;
+                });
+        }
+
+        function iniciarCalendarios(datasBloqueadas) {
+            const config = { 
+                locale: "pt", 
+                dateFormat: "Y-m-d", 
+                minDate: "today", 
+                disable: datasBloqueadas,
+                disableMobile: "true", // Garante que use o layout customizado com cores no celular
+                onChange: function(selectedDates, dateStr, instance) {
+                    if (instance.element.id === "data-retirada") {
+                        document.getElementById("resumo-inicio").innerText = formatarDataBR(dateStr);
+                    } else {
+                        document.getElementById("resumo-fim").innerText = formatarDataBR(dateStr);
+                    }
+                }
+            };
+            
+            const pRet = flatpickr("#data-retirada", config);
+            const pDev = flatpickr("#data-devolucao", config);
+
+            document.getElementById("data-retirada").addEventListener("change", (e) => {
+                pDev.set("minDate", e.target.value);
+            });
+        }
+
+        function confirmarReserva(e) {
+            e.preventDefault();
+            const btn = document.getElementById('btn-submit');
+            btn.innerText = "Registrando..."; btn.disabled = true;
+
+            const payload = {
+                action: 'reservar', 
+                codigo: codigoAtual,
+                usuario: localStorage.getItem('userName'), 
+                retirada: document.getElementById('data-retirada').value, 
+                devolucao: document.getElementById('data-devolucao').value
+            };
+
+            fetch(scriptURL, { method: 'POST', body: JSON.stringify(payload) })
+            .then(res => res.json())
+            .then(data => {
+                if(data.status === 'sucesso'){
+                    showToast("Reserva efetuada!");
+                    setTimeout(() => window.location.href = 'inventario.html', 1500);
+                } else {
+                    showToast(data.detalhe, "erro");
+                    btn.innerText = "Confirmar Solicitação";
+                    btn.disabled = false;
+                }
+            });
+        }
+    </script>
+</body>
+</html>

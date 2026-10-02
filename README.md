@@ -1,2 +1,2 @@
-# GeAimore
-Site Grupo escoteiro aimoré
+# Ge-Aimore
+Site Grupo Escoteiro Aimoré
